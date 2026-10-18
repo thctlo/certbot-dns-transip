@@ -1,0 +1,134 @@
+#!/bin/sh
+# postinst for python3-certbot-dns-transip
+#
+# Scaffolds /etc/letsencrypt/transip/ (the directory-mode layout for
+# the dns-transip plugin's --dns-transip-credentials option, used when
+# more than one TransIP account is involved). Everything here is
+# created only if it does not already exist, so an admin's own files
+# are never touched or overwritten on upgrade. Nothing under
+# /etc/letsencrypt/transip/ is ever removed by this package (it may
+# contain real private keys and account credentials), so there is no
+# matching cleanup in postrm.
+
+set -e
+
+TRANSIP_DIR="/etc/letsencrypt/transip"
+
+create_dir() {
+    if [ ! -d "$1" ]; then
+        mkdir -p "$1"
+        chown root:root "$1"
+        chmod 700 "$1"
+    fi
+}
+
+case "$1" in
+    configure)
+        create_dir "$TRANSIP_DIR"
+        create_dir "$TRANSIP_DIR/keys"
+        create_dir "$TRANSIP_DIR/cache"
+        create_dir "$TRANSIP_DIR/accounts.d"
+
+        EXAMPLE="$TRANSIP_DIR/accounts.d/account1-example.ini-disabled"
+        if [ ! -e "$EXAMPLE" ]; then
+            cat > "$EXAMPLE" <<'EXAMPLE_INI'
+# Example TransIP account credentials for the "dns-transip" certbot
+# plugin's directory mode (two or more TransIP accounts). To activate:
+# copy this file to a new name ending in .ini (e.g. account1.ini) in
+# this same accounts.d/ directory, and fill in your real values.
+#
+# Full setup instructions: see ../README.md, or
+# /usr/share/doc/python3-certbot-dns-transip/README.md
+
+# Your TransIP account login (same name as in the TransIP control panel).
+dns_transip_username = your-transip-login
+
+# Path to the PRIVATE RSA key (PEM) of the API key pair you generated
+# in the TransIP control panel (My Account > API) for THIS account.
+# Keep it as secret as a password. Conventionally stored in ../keys/.
+dns_transip_key_file = /etc/letsencrypt/transip/keys/account1.key
+
+# Optional. Comma-separated list of the base domains (zones) this
+# account manages at TransIP, e.g. "example.com, example.org".
+#
+# This ONLY tells the plugin which TransIP account to use internally
+# to validate a given domain - it has NO effect on what ends up on
+# your certificate. Which domains get requested is still entirely
+# controlled by -d on the certbot command line, every time, regardless
+# of this setting.
+#
+# Leave this unset (or empty) and the plugin will instead ask the
+# TransIP API which account manages a domain, automatically, the
+# first time it needs to - slightly slower, but just as correct. Only
+# useful to set when you have more than one account and want to skip
+# that lookup, or avoid any ambiguity between accounts.
+#dns_transip_domains = example.com, example.org
+
+# Optional, default: false.
+#
+# false (recommended): the API token only works from IPs you have
+# whitelisted for this key in the TransIP control panel. Add this
+# server's IP there.
+#
+# true: the token works from any IP - more convenient if this
+# server's IP changes, but less secure.
+#dns_transip_global_key = false
+EXAMPLE_INI
+            chown root:root "$EXAMPLE"
+            chmod 600 "$EXAMPLE"
+        fi
+
+        README="$TRANSIP_DIR/README.md"
+        if [ ! -e "$README" ]; then
+            cat > "$README" <<'TRANSIP_README'
+# TransIP accounts for the dns-transip certbot plugin
+
+This directory is used when `--dns-transip-credentials` points here
+(instead of at a single .ini file) - for when more than one TransIP
+account is involved between the domains you need certificates for.
+
+## Quick setup
+
+1. Copy `accounts.d/account1-example.ini-disabled` to a new file
+   ending in `.ini` inside `accounts.d/` (e.g. `accounts.d/account1.ini`)
+   - one file per TransIP account. Files not ending in `.ini` are
+   ignored, which is why the example uses `.ini-disabled`.
+2. Fill in `dns_transip_username` and `dns_transip_key_file` in each.
+   Put the private key files in `keys/`.
+3. `chmod 600` every `.ini` and key file.
+4. Use it with:
+
+   ```
+   certbot certonly -a dns-transip \
+       --dns-transip-credentials /etc/letsencrypt/transip/ \
+       -d example.com -d '*.example.com'
+   ```
+
+   The plugin automatically figures out, per domain, which account's
+   credentials to use - optionally sped up per account via
+   `dns_transip_domains` in that account's .ini file (see the example
+   file). That setting never affects which domains end up on a
+   certificate - that is always controlled by `-d`.
+
+## Only one TransIP account?
+
+You don't need this directory at all - just point
+`--dns-transip-credentials` straight at a single `.ini` file, as
+before. This directory structure is only needed once a second account
+is involved.
+
+## More information
+
+Full documentation, including the single-account setup, troubleshooting,
+and how the token cache works:
+`/usr/share/doc/python3-certbot-dns-transip/README.md`
+TRANSIP_README
+            chown root:root "$README"
+            chmod 644 "$README"
+        fi
+        ;;
+esac
+
+#DEBHELPER#
+
+exit 0

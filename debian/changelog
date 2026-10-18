@@ -1,0 +1,82 @@
+certbot-dns-transip (0.2) trixie; urgency=medium
+
+  * No functional change. Maintainer contact changed to
+    personal@builder.invalid, and personal/development-activity
+    wording removed from this changelog's older entries, ahead of
+    publishing this package's source publicly.
+
+ -- Personal Builder <personal@builder.invalid>  Mon, 19 Oct 2026 01:10:00 +0200
+
+certbot-dns-transip (0.1.5) trixie; urgency=medium
+
+  * dns_transip.py: support more than one TransIP account in a single
+    certbot run. --dns-transip-credentials now also accepts a
+    directory (containing accounts.d/*.ini, one file per account)
+    instead of only a single file, for setups where domains are
+    split across more than one TransIP account. Each domain is
+    matched to the right
+    account via an optional dns_transip_domains hint in that account's
+    ini file (no API call), or failing that a live TransIP API lookup
+    (unchanged single-account behaviour, now just tried per account).
+    _cleanup always reuses the exact account _perform picked, never
+    re-searches. Token caches move to a cache/ subdirectory per
+    account in directory mode; single-file mode is unchanged.
+  * debian/postinst (new): scaffolds /etc/letsencrypt/transip/{keys,
+    cache,accounts.d}/ (0700, root:root) plus a disabled example
+    account file and a short README, only if they don't already
+    exist - never touches an admin's own files on upgrade, and never
+    removes this directory on purge (it can hold real private keys).
+  * README.md: document the directory/multi-account layout and the
+    dns_transip_domains key - it only picks which TransIP account is
+    used internally, it never affects what ends up on the
+    certificate, that is still entirely controlled by -d.
+
+ -- Personal Builder <personal@builder.invalid>  Mon, 19 Oct 2026 00:50:00 +0200
+
+certbot-dns-transip (0.1.4) trixie; urgency=medium
+
+  * dns_transip.py: build one TransipClient per certbot run instead
+    of a new one for every _perform/_cleanup call, so a run - any
+    number of domains - shares a single access token instead of
+    repeatedly re-authenticating under the same label. This was the
+    root cause of the 401 "label ... already used in another active
+    access token" error, observed during a --dry-run on both
+    creating and removing the TXT record. The token cache file is
+    now derived automatically from the credentials INI path, no new
+    config option needed. Requires transip-rest >= 0.1.2.
+
+ -- Personal Builder <personal@builder.invalid>  Sun, 18 Oct 2026 23:30:00 +0200
+
+certbot-dns-transip (0.1.3) trixie; urgency=medium
+
+  * debian/python3-certbot-dns-transip.docs: explicitly include
+    README.md - debhelper's automatic doc-file detection did not pick
+    it up on its own, so the 0.1.2 README fix never actually shipped.
+
+ -- Personal Builder <personal@builder.invalid>  Sat, 17 Oct 2026 23:50:00 +0200
+
+certbot-dns-transip (0.1.2) trixie; urgency=medium
+
+  * README.md: make clear the example credentials file is not copied
+    into /etc/letsencrypt/ automatically, and show the cp+chmod steps
+    needed - it was unclear from the README alone whether that copy
+    happened automatically.
+
+ -- Personal Builder <personal@builder.invalid>  Sat, 17 Oct 2026 23:40:00 +0200
+
+certbot-dns-transip (0.1.1) trixie; urgency=medium
+
+  * Add transip.ini.example (commented example credentials file),
+    installed to /usr/share/doc/python3-certbot-dns-transip/examples/ -
+    the package shipped with no example of its own credentials file
+    format.
+
+ -- Personal Builder <personal@builder.invalid>  Sat, 17 Oct 2026 23:30:00 +0200
+
+certbot-dns-transip (0.1.0) trixie; urgency=medium
+
+  * Initial release. Own, original implementation (not a repackaging of
+    hsmade/certbot_dns_transip or any other upstream project) - see
+    debian/copyright for provenance details.
+
+ -- Personal Builder <personal@builder.invalid>  Sat, 17 Oct 2026 23:00:00 +0200

@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "certbot-dns-transip"
+version = "0.2"
+description = "Certbot plugin to authenticate using DNS TXT records via the TransIP API"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+authors = [{name = "Personal Builder", email = "personal@builder.invalid"}]
+requires-python = ">=3.11"
+dependencies = [
+    "certbot",
+    "transip-rest>=0.1.2",
+]
+
+[project.entry-points."certbot.plugins"]
+dns-transip = "certbot_dns_transip.dns_transip:Authenticator"
+
+[tool.setuptools.packages.find]
+include = ["certbot_dns_transip*"]
+
+[tool.pytest.ini_options]
+# See transip-rest's pyproject.toml for why this is needed (prevents
+# .pytest_cache/ from being shipped inside the .deb).
+addopts = "-p no:cacheprovider"

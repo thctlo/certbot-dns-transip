@@ -1,0 +1,5 @@
+Tests: unittest
+Depends: python3-certbot-dns-transip, python3-pytest
+
+Tests: plugin-registered
+Depends: python3-certbot-dns-transip

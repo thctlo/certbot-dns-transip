@@ -1,0 +1,31 @@
+Source: certbot-dns-transip
+Section: python
+Priority: optional
+Maintainer: Personal Builder <personal@builder.invalid>
+Build-Depends:
+ debhelper-compat (= 13),
+ dh-python,
+ dh-sequence-python3,
+ pybuild-plugin-pyproject,
+ python3-all,
+ python3-certbot,
+ python3-pytest <!nocheck>,
+ python3-setuptools,
+ python3-transip-rest (>= 0.1.2),
+Standards-Version: 4.7.2
+Rules-Requires-Root: no
+
+Package: python3-certbot-dns-transip
+Architecture: all
+Depends:
+ ${misc:Depends},
+ ${python3:Depends},
+ python3-certbot,
+ python3-transip-rest (>= 0.1.2),
+Description: Certbot plugin to authenticate using DNS TXT records via TransIP
+ Completes the ACME dns-01 challenge by creating and removing a TXT
+ record via the TransIP API (through python3-transip-rest), so
+ certificates can be issued for domains hosted at TransIP without
+ exposing a web server for http-01 validation.
+ .
+ Registers as the "dns-transip" certbot plugin.

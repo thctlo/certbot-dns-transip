@@ -1,0 +1,6 @@
+#!/usr/bin/make -f
+
+export PYBUILD_NAME=certbot_dns_transip
+
+%:
+	dh $@ --buildsystem=pybuild

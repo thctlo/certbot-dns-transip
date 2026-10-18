@@ -1,0 +1,32 @@
+# Example credentials file for the certbot "dns-transip" plugin.
+#
+# Copy this to e.g. /etc/letsencrypt/transip.ini, fill in your own
+# values, then lock it down:
+#
+#   chmod 600 /etc/letsencrypt/transip.ini /etc/letsencrypt/transip.key
+#
+# Use it with:
+#
+#   certbot certonly -a dns-transip \
+#       --dns-transip-credentials /etc/letsencrypt/transip.ini \
+#       -d example.com --dry-run
+#
+# (always test with --dry-run first)
+
+# Your TransIP account login (same name as in the TransIP control panel).
+dns_transip_username = your-transip-login
+
+# Path to the PRIVATE RSA key (PEM) of the API key pair you generated in
+# the TransIP control panel (Mijn Account > API). Not the public key -
+# the private one, and keep it as secret as a password.
+dns_transip_key_file = /etc/letsencrypt/transip.key
+
+# Optional, default: false.
+#
+# false (recommended): the API token only works from IPs you have
+# whitelisted for this key in the TransIP control panel. Add this
+# server's IP there.
+#
+# true: the token works from any IP - more convenient if this server's
+# IP changes, but less secure.
+#dns_transip_global_key = false

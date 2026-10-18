@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Debian packaging build byproducts (when building directly in this tree)
+.pybuild/
+debian/.debhelper/
+debian/files
+debian/*.substvars
+debian/*.debhelper.log
+debian/python3-*/
+
+# dpkg-buildpackage normally writes these one directory up, not here,
+# but ignore them too in case a tool is pointed at this directory.
+*.dsc
+*.tar.xz
+*.tar.gz
+*.deb
+*.changes
+*.buildinfo
