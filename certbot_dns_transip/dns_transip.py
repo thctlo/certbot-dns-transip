@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
@@ -49,6 +50,18 @@ _REQUIRED_CREDENTIAL_VARS = {
     "username": "TransIP account login",
     "key_file": "Path to the RSA private key (PEM) for this account",
 }
+
+# A dns_transip_domains entry split on the wrong separator (e.g. a space
+# instead of a comma) does not raise on its own - it just silently never
+# matches any real validation_name, which also means the account that
+# entry belongs to is excluded from the live-probe fallback too (see
+# _find_account_and_base_domain), so every domain for that account fails.
+# Reject anything that cannot possibly be a single domain label early,
+# with a clear error naming the actual bad value, instead of that.
+_DOMAIN_RE = re.compile(
+    r"^[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?"
+    r"(\.[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?)+$"
+)
 
 
 @dataclass
@@ -153,6 +166,15 @@ class Authenticator(dns_common.DNSAuthenticator):
             creds.require(_REQUIRED_CREDENTIAL_VARS)
             domains_raw = creds.conf("domains")
             domains = [d.strip() for d in domains_raw.split(",") if d.strip()] if domains_raw else []
+            for d in domains:
+                if not _DOMAIN_RE.match(d):
+                    raise errors.PluginError(
+                        f"{ini_path}: dns_transip_domains entry {d!r} does "
+                        "not look like a single domain name - check for a "
+                        "missing comma between entries (it must be a "
+                        "comma-separated list, e.g. 'example.com, "
+                        "example.org', not space-separated)."
+                    )
             accounts.append(_Account(ini_path.stem, creds, domains))
         return accounts
 

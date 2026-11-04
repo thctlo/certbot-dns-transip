@@ -1,3 +1,19 @@
+certbot-dns-transip (0.2.2) trixie; urgency=medium
+
+  * dns_transip.py: validate each dns_transip_domains entry looks like a
+    single domain name (reject anything with internal whitespace or
+    other characters a hostname label can't contain), with a clear
+    error naming the ini file and the bad value. Before this, a space
+    instead of a comma between two entries (a real admin mistake seen
+    2026-11-04) parsed into one bogus "domain" that could never match
+    any real validation_name, and ALSO excluded the whole account from
+    the live-probe fallback (_find_account_and_base_domain only tries
+    accounts with an empty domains list there) - so every domain for
+    that account failed, with no error pointing at the actual cause.
+  * tests/test_dns_transip.py: one new test for the rejection above.
+
+ -- Personal Builder <personal@builder.invalid>  Wed, 04 Nov 2026 23:10:00 +0100
+
 certbot-dns-transip (0.2.1) trixie; urgency=medium
 
   * dns_transip.py: create the cache/ subdirectory in directory mode if

@@ -109,6 +109,23 @@ def test_setup_credentials_directory_mode_tolerates_existing_cache_dir(tmp_path)
     assert auth._cache_dir == tmp_path / "cache"
 
 
+def test_setup_credentials_directory_mode_rejects_space_separated_domains(tmp_path):
+    # A real misconfiguration found 2026-11-04: a space instead of a
+    # comma between entries used to parse silently into one bogus
+    # "domain" that could never match any real validation_name - and
+    # also excluded the account from the live-probe fallback, so every
+    # domain for that account failed with a confusing error elsewhere.
+    accounts_dir = tmp_path / "accounts.d"
+    accounts_dir.mkdir()
+    _write_ini(accounts_dir / "account1.ini", domains="example.com example.org")
+
+    auth = _make_authenticator()
+    auth.conf = mock.MagicMock(return_value=str(tmp_path))
+
+    with pytest.raises(Exception, match="does not look like a single domain"):
+        auth._setup_credentials()
+
+
 def test_setup_credentials_directory_mode_ignores_disabled_example(tmp_path):
     accounts_dir = tmp_path / "accounts.d"
     accounts_dir.mkdir()

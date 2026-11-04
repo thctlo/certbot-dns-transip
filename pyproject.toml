@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "certbot-dns-transip"
-version = "0.2.1"
+version = "0.2.2"
 description = "Certbot plugin to authenticate using DNS TXT records via the TransIP API"
 readme = "README.md"
 license = {text = "Apache-2.0"}
