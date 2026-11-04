@@ -1,3 +1,23 @@
+certbot-dns-transip (0.2.3) trixie; urgency=high
+
+  * dns_transip.py: fix a crash when an account's dns_transip_domains
+    has more than one domain. ConfigObj (the INI parser certbot's
+    CredentialsConfiguration uses) auto-splits any comma-containing
+    value into a Python list by itself before this code ever sees it -
+    a single domain with no comma arrives as a plain str, but two or
+    more comma-separated domains already arrive as a list. Calling
+    .split(",") on that list raised AttributeError, so the real
+    multi-domain, comma-separated case - the one 0.2.2's own fix was
+    about - crashed outright on an actual on-disk ini file, found
+    2026-11-04 right after upgrading a real server. Now handles both a
+    plain str and an already-split list.
+  * tests/test_dns_transip.py: new test using a real on-disk ini file
+    with two comma-separated domains in one account (every prior test
+    either used a single domain, or two accounts with one domain
+    each - this exact case was never actually exercised before).
+
+ -- Personal Builder <personal@builder.invalid>  Wed, 04 Nov 2026 23:30:00 +0100
+
 certbot-dns-transip (0.2.2) trixie; urgency=medium
 
   * dns_transip.py: validate each dns_transip_domains entry looks like a

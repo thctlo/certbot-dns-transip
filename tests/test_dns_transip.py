@@ -81,6 +81,24 @@ def test_setup_credentials_directory_mode_loads_accounts(tmp_path):
     assert account2.domains == []
 
 
+def test_setup_credentials_directory_mode_multiple_comma_separated_domains(tmp_path):
+    # ConfigObj (the real INI parser, not mocked here) auto-splits any
+    # comma-containing value into a list before our code sees it - a
+    # single domain with no comma stays a plain str (see the test
+    # above). This is the one on-disk-ini case that actually exercises
+    # that: it crashed with AttributeError until 2026-11-04.
+    accounts_dir = tmp_path / "accounts.d"
+    accounts_dir.mkdir()
+    _write_ini(accounts_dir / "account1.ini", domains="example.com,example.org")
+
+    auth = _make_authenticator()
+    auth.conf = mock.MagicMock(return_value=str(tmp_path))
+    auth._setup_credentials()
+
+    account1 = next(a for a in auth._accounts if a.name == "account1")
+    assert account1.domains == ["example.com", "example.org"]
+
+
 def test_setup_credentials_directory_mode_creates_missing_cache_dir(tmp_path):
     # Normally created by the .deb's postinst - the plugin must not
     # depend on that (e.g. a pip install has no postinst).

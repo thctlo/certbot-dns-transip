@@ -165,7 +165,21 @@ class Authenticator(dns_common.DNSAuthenticator):
             creds = CredentialsConfiguration(str(ini_path), self.dest)
             creds.require(_REQUIRED_CREDENTIAL_VARS)
             domains_raw = creds.conf("domains")
-            domains = [d.strip() for d in domains_raw.split(",") if d.strip()] if domains_raw else []
+            # ConfigObj (the INI parser certbot's CredentialsConfiguration
+            # uses) auto-splits any comma-containing value into a list by
+            # itself, before this code ever sees it - so a value with
+            # exactly one domain and no comma arrives as a plain str, but
+            # two or more comma-separated domains already arrive as a
+            # list. Splitting that list on "," again crashed with
+            # AttributeError (str method on a list) - found 2026-11-04,
+            # the real-world multi-domain case was never exercised
+            # against an actual on-disk ini file until now.
+            if not domains_raw:
+                domains = []
+            elif isinstance(domains_raw, list):
+                domains = [d.strip() for d in domains_raw if d.strip()]
+            else:
+                domains = [d.strip() for d in domains_raw.split(",") if d.strip()]
             for d in domains:
                 if not _DOMAIN_RE.match(d):
                     raise errors.PluginError(
