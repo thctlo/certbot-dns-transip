@@ -113,6 +113,16 @@ class Authenticator(dns_common.DNSAuthenticator):
         if path.is_dir():
             self._accounts = self._load_account_directory(path)
             self._cache_dir = path / "cache"
+            # Normally already created by the .deb's postinst, but the
+            # plugin must not depend on that (e.g. a pip install has no
+            # postinst) - caching is a pure optimization, so a failure
+            # here just means FileTokenCache's own writes will silently
+            # no-op (same best-effort contract as the rest of caching),
+            # not a reason to abort credential setup.
+            try:
+                self._cache_dir.mkdir(parents=True, exist_ok=True)
+            except OSError:
+                pass
         else:
             creds = CredentialsConfiguration(str(path), self.dest)
             creds.require(_REQUIRED_CREDENTIAL_VARS)

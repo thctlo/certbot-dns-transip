@@ -1,3 +1,22 @@
+certbot-dns-transip (0.2.1) trixie; urgency=medium
+
+  * dns_transip.py: create the cache/ subdirectory in directory mode if
+    it does not already exist, instead of relying entirely on the
+    .deb's postinst to have done so. The plugin can also be installed
+    via pip (no postinst), in which case every token-cache write was
+    silently failing - FileTokenCache.set() treats a missing directory
+    as a plain write failure and no-ops by design, so this never
+    raised an error, it just meant caching never actually worked.
+    Found 2026-11-04 after a real account's dns_transip_domains value
+    was accidentally space- instead of comma-separated (a separate,
+    already-fixed admin mistake, not a bug here) made the symptom look
+    like an intermittent caching bug.
+  * tests/test_dns_transip.py: two new tests - the cache dir gets
+    created when missing, and setup tolerates it already existing
+    (idempotent, matches postinst's own "only if missing" behaviour).
+
+ -- Personal Builder <personal@builder.invalid>  Wed, 04 Nov 2026 22:30:00 +0100
+
 certbot-dns-transip (0.2) trixie; urgency=medium
 
   * No functional change. Maintainer contact changed to

@@ -74,10 +74,39 @@ def test_setup_credentials_directory_mode_loads_accounts(tmp_path):
     names = sorted(a.name for a in auth._accounts)
     assert names == ["account1", "account2"]
     assert auth._cache_dir == tmp_path / "cache"
+    assert auth._cache_dir.is_dir()
     account1 = next(a for a in auth._accounts if a.name == "account1")
     assert account1.domains == ["example.com"]
     account2 = next(a for a in auth._accounts if a.name == "account2")
     assert account2.domains == []
+
+
+def test_setup_credentials_directory_mode_creates_missing_cache_dir(tmp_path):
+    # Normally created by the .deb's postinst - the plugin must not
+    # depend on that (e.g. a pip install has no postinst).
+    accounts_dir = tmp_path / "accounts.d"
+    accounts_dir.mkdir()
+    _write_ini(accounts_dir / "account1.ini")
+    assert not (tmp_path / "cache").exists()
+
+    auth = _make_authenticator()
+    auth.conf = mock.MagicMock(return_value=str(tmp_path))
+    auth._setup_credentials()
+
+    assert (tmp_path / "cache").is_dir()
+
+
+def test_setup_credentials_directory_mode_tolerates_existing_cache_dir(tmp_path):
+    accounts_dir = tmp_path / "accounts.d"
+    accounts_dir.mkdir()
+    _write_ini(accounts_dir / "account1.ini")
+    (tmp_path / "cache").mkdir()
+
+    auth = _make_authenticator()
+    auth.conf = mock.MagicMock(return_value=str(tmp_path))
+    auth._setup_credentials()  # must not raise
+
+    assert auth._cache_dir == tmp_path / "cache"
 
 
 def test_setup_credentials_directory_mode_ignores_disabled_example(tmp_path):
