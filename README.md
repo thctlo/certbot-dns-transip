@@ -4,6 +4,11 @@ A certbot DNS Authenticator plugin that completes the `dns-01` challenge
 via the [TransIP](https://www.transip.nl/) API, using the `transip-rest`
 package.
 
+## Platform
+
+Built and packaged for Debian 13 (trixie); not tested on other
+distributions or Debian releases.
+
 ## Named plugin
 
 `dns-transip` (same name as the now-unmaintained
